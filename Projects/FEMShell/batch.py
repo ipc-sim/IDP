@@ -2,7 +2,7 @@ import subprocess
 
 # Intel MKL number of threads
 numThreads = '16'
-baseCommand += 'export MKL_NUM_THREADS=' + numThreads + '\nexport OMP_NUM_THREADS=' + numThreads + '\nexport VECLIB_MAXIMUM_THREADS=' + numThreads + '\n'
+baseCommand = 'export MKL_NUM_THREADS=' + numThreads + '\nexport OMP_NUM_THREADS=' + numThreads + '\nexport VECLIB_MAXIMUM_THREADS=' + numThreads + '\n'
 
 # run
 for script in ['12-14_normal_flow.py']:
