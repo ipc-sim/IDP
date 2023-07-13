@@ -631,6 +631,8 @@ void Compute_Max_And_Avg_Stretch(
                 B(1, 0) = 0;
                 B(0, 1) = Bsqr(0, 1) / B(0, 0);
                 B(1, 1) = std::sqrt(Bsqr(1, 1) - Bsqr(0, 1) * Bsqr(0, 1) / Bsqr(0, 0));
+                if (B.determinant() == 0.0)
+                    return;
                 MATRIX<T, dim - 1> A;
                 A(0, 0) = (x2 - x1).norm();
                 A(1, 0) = 0;

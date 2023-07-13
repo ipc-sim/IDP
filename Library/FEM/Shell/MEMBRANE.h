@@ -27,8 +27,10 @@ void Compute_Membrane_Energy(
                 const VECTOR<T, dim>& x2 = std::get<0>(X.Get_Unchecked(elemVInd[1]));
                 const VECTOR<T, dim>& x3 = std::get<0>(X.Get_Unchecked(elemVInd[2]));
                 MATRIX<T, dim - 1> IB = std::get<FIELDS<MESH_ELEM_ATTR<T, dim>>::IB>(elemAttr.Get_Unchecked(id));
-                IB.invert();
+                if (IB.determinant() == 0.0)
+                    return;
 
+                IB.invert();
                 const VECTOR<T, dim> e01 = x2 - x1;
                 const VECTOR<T, dim> e02 = x3 - x1;
                 MATRIX<T, dim - 1> A;
@@ -72,8 +74,10 @@ void Compute_Membrane_Gradient(
                 const VECTOR<T, dim>& x3 = std::get<0>(X.Get_Unchecked(elemVInd[2]));
                 Eigen::Matrix<T, dim, 1> x1e(x1.data), x2e(x2.data), x3e(x3.data);
                 MATRIX<T, dim - 1> IB = std::get<FIELDS<MESH_ELEM_ATTR<T, dim>>::IB>(elemAttr.Get_Unchecked(id));
-                IB.invert();
+                if (IB.determinant() == 0.0)
+                    return;
 
+                IB.invert();
                 const VECTOR<T, dim> e01 = x2 - x1;
                 const VECTOR<T, dim> e02 = x3 - x1;
                 MATRIX<T, dim - 1> A;
@@ -187,8 +191,28 @@ void Compute_Membrane_Hessian(
                 const VECTOR<T, dim>& x3 = std::get<0>(X.Get_Unchecked(elemVInd[2]));
                 Eigen::Matrix<T, dim, 1> x1e(x1.data), x2e(x2.data), x3e(x3.data);
                 MATRIX<T, dim - 1> IB = std::get<FIELDS<MESH_ELEM_ATTR<T, dim>>::IB>(elemAttr.Get_Unchecked(id));
-                IB.invert();
+                if (IB.determinant() == 0.0) {
+                    int indMap[9] = {
+                        elemVInd[0] * dim,
+                        elemVInd[0] * dim + 1,
+                        elemVInd[0] * dim + 2,
+                        elemVInd[1] * dim,
+                        elemVInd[1] * dim + 1,
+                        elemVInd[1] * dim + 2,
+                        elemVInd[2] * dim,
+                        elemVInd[2] * dim + 1,
+                        elemVInd[2] * dim + 2
+                    };
+                    for (int i = 0; i < 9; ++i) {
+                        int tripletIStart = tripletStartInd[id] + i * 9;
+                        for (int j = 0; j < 9; ++j) {
+                            triplets[tripletIStart + j] = std::move(Eigen::Triplet<T>(indMap[i], indMap[j], 0.0));
+                        }
+                    }
+                    return;
+                }
 
+                IB.invert();
                 const VECTOR<T, dim> e01 = x2 - x1;
                 const VECTOR<T, dim> e02 = x3 - x1;
                 MATRIX<T, dim - 1> A;
